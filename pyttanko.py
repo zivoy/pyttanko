@@ -35,8 +35,8 @@ domain. check the attached UNLICENSE or http://unlicense.org/
 __author__ = "Franc[e]sco <lolisamurai@tfwno.gf>"
 __version__ = "1.2.1"
 
-import sys
 import math
+import sys
 
 if sys.version_info[0] < 3:
     # hack to force utf-8
@@ -45,12 +45,13 @@ if sys.version_info[0] < 3:
 
 info = sys.stderr.write
 
+
 class v2f:
     """2D vector with float values"""
+
     def __init__(self, x=0.0, y=0.0):
         self.x = x
         self.y = y
-
 
     def __sub__(self, other):
         return v2f(self.x - other.x, self.y - other.y)
@@ -76,6 +77,7 @@ class v2f:
 
 MODE_STD = 0
 
+
 class circle:
     def __init__(self, pos=None):
         """
@@ -87,7 +89,6 @@ class circle:
 
         self.pos = pos
 
-
     def __str__(self):
         return str(self.__dict__)
 
@@ -96,7 +97,7 @@ class circle:
 
 
 class slider:
-    def __init__(self, pos=None, distance=0.0, repetitions=0):
+    def __init__(self, pos=None, distance=0.0, repetitions=0, points=list(), slider_type="P"):
         """
         initializes a slider object.
 
@@ -109,7 +110,8 @@ class slider:
         self.pos = pos
         self.distance = distance
         self.repetitions = repetitions
-
+        self.points = points
+        self.type = slider_type
 
     def __str__(self):
         return str(self.__dict__)
@@ -118,9 +120,27 @@ class slider:
         return str(self)
 
 
-OBJ_CIRCLE = 1<<0
-OBJ_SLIDER = 1<<1
-OBJ_SPINNER = 1<<3
+class spinner:
+    def __init__(self, end_time=0.0):
+        """
+        initializes a spinner object.
+
+        end_time: end time of spinner (float)
+        """
+
+        self.end_time = end_time
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __repr__(self):
+        return str(self)
+
+
+OBJ_CIRCLE = 1 << 0
+OBJ_SLIDER = 1 << 1
+OBJ_SPINNER = 1 << 3
+
 
 class hitobject:
     def __init__(self, time=0.0, objtype=OBJ_CIRCLE, data=None):
@@ -128,18 +148,17 @@ class hitobject:
         initializes a new hitobject.
 
         time: start time in milliseconds (float)
-        data: an instance of circle, slider or None
+        data: an instance of circle, slider, spinner or None
         """
         self.time = time
         self.objtype = objtype
         self.data = data
         self.normpos = v2f()
         self.angle = 0.0
-        self.strains = [ 0.0, 0.0 ]
+        self.strains = [0.0, 0.0]
         self.is_single = False
         self.delta_time = 0.0
         self.d_distance = 0.0
-
 
     def typestr(self):
         res = ""
@@ -153,17 +172,15 @@ class hitobject:
 
         return res[0:-3]
 
-
     def __str__(self):
         return (
-            """hitobject(time=%g, objtype=%s, data=%s,
-normpos=%s, strains=%s, is_single=%s)""" % (
-                self.time, self.typestr(), str(self.data),
-                str(self.normpos), str(self.strains),
-                str(self.is_single)
-            )
+                """hitobject(time=%g, objtype=%s, data=%s,
+    normpos=%s, strains=%s, is_single=%s)""" % (
+            self.time, self.typestr(), str(self.data),
+            str(self.normpos), str(self.strains),
+            str(self.is_single)
         )
-
+        )
 
     def __repr__(self):
         return str(self)
@@ -180,7 +197,6 @@ class timing:
         self.time = time
         self.ms_per_beat = ms_per_beat
         self.change = change
-
 
     def __str__(self):
         return str(self.__dict__)
@@ -205,6 +221,7 @@ class beatmap:
     hitobjects: list (hitobject)
     timing_points: list (timing)
     """
+
     def __init__(self):
         # i tried pre-allocating hitobjects and timing_points
         # as well as object data.
@@ -214,7 +231,6 @@ class beatmap:
         self.timing_points = []
         # these are assumed to be ordered by time low to high
         self.reset()
-
 
     def reset(self):
         """
@@ -238,7 +254,6 @@ class beatmap:
         self.hitobjects[:] = []
         self.timing_points[:] = []
 
-
     def __str__(self):
         s = self
         return """beatmap(
@@ -258,7 +273,6 @@ class beatmap:
             s.ar, s.sv, s.tick_rate
         )
 
-
     def __repr__(self):
         return str(self)
 
@@ -275,7 +289,6 @@ class beatmap:
             if obj.objtype & OBJ_SLIDER == 0:
                 res += 1
                 continue
-
 
             # keep track of the current timing point without
             # looping through all of the timing points for every
@@ -297,12 +310,11 @@ class beatmap:
                 if self.format_version < 8:
                     px_per_beat /= sv_multiplier
 
-
             # slider ticks
             sl = obj.data
 
             num_beats = (
-                (sl.distance * sl.repetitions) / px_per_beat
+                    (sl.distance * sl.repetitions) / px_per_beat
             )
 
             ticks = int(
@@ -318,9 +330,7 @@ class beatmap:
 
             res += max(0, ticks)
 
-
         return res
-
 
 
 # -------------------------------------------------------------------------
@@ -335,12 +345,12 @@ class parser:
     nline: last line number touched
     done: True if the parsing completed successfully
     """
+
     def __init__(self):
         self.lastline = ""
         self.lastpos = ""
         self.nline = 0
         self.done = False
-
 
     def __str__(self):
         """formats parser status if the parsing failed"""
@@ -348,11 +358,10 @@ class parser:
             return "parsing successful"
 
         return (
-            "in line %d\n%s\n> %s\n" % (
-                self.nline, self.lastline, self.lastpos
-            )
+                "in line %d\n%s\n> %s\n" % (
+            self.nline, self.lastline, self.lastpos
         )
-
+        )
 
     def __repr__(self):
         return str(self)
@@ -364,7 +373,6 @@ class parser:
         self.lastpos = v
         return v
 
-
     def property(self, line):
         # parses PropertyName:Value into a tuple
         s = line.split(":")
@@ -372,8 +380,7 @@ class parser:
             raise SyntaxError(
                 "property must be a pair of ':'-separated values"
             )
-        return (s[0], "".join(s[1:]))
-
+        return s[0], "".join(s[1:])
 
     def metadata(self, b, line):
         p = self.property(line)
@@ -390,12 +397,12 @@ class parser:
         elif p[0] == "Version":
             b.version = p[1]
 
-
     def general(self, b, line):
         p = self.property(line)
         if p[0] == "Mode":
             b.mode = int(self.setlastpos(p[1]))
-
+        elif p[0] == "AudioFilename":
+            b.audio = self.setlastpos(p[1])[1:]
 
     def difficulty(self, b, line):
         p = self.property(line)
@@ -412,7 +419,6 @@ class parser:
         elif p[0] == "SliderTickRate":
             b.tick_rate = float(self.setlastpos(p[1]))
 
-
     def timing(self, b, line):
         s = line.split(",")
 
@@ -424,7 +430,6 @@ class parser:
                 "timing point must have at least two fields"
             )
 
-
         t = timing(
             time=float(self.setlastpos(s[0])),
             ms_per_beat=float(self.setlastpos(s[1]))
@@ -435,7 +440,6 @@ class parser:
 
         b.timing_points.append(t)
 
-
     def objects_std(self, b, line):
         s = line.split(",")
         if len(s) > 11:
@@ -445,7 +449,6 @@ class parser:
             raise SyntaxError(
                 "hitobject must have at least 5 fields"
             )
-
 
         # I already tried calling the constructor with all of the
         # values on the fly and it wasn't any faster, don't bother
@@ -466,6 +469,9 @@ class parser:
         # ?,?,?,?,?,end_time,custom_sample_banks
         elif obj.objtype & OBJ_SPINNER != 0:
             b.nspinners += 1
+            spn = spinner()
+            spn.end_time = float(self.setlastpos(s[5]))
+            obj.data = spn
 
         # x,y,time,type,sound_type,points,repetitions,distance,
         # per_node_sounds,per_node_samples,custom_sample_banks
@@ -479,13 +485,20 @@ class parser:
             sli = slider()
             sli.pos.x = float(self.setlastpos(s[0]))
             sli.pos.y = float(self.setlastpos(s[1]))
+            sli.points = list()
+            points = self.setlastpos(s[5]).split("|")
+            sli.type = points[0]
+            for i in points[1:]:
+                point = v2f()
+                splt = i.split(":")
+                point.x = float(splt[0])
+                point.y = float(splt[1])
+                sli.points.append(point)
             sli.repetitions = int(self.setlastpos(s[6]))
             sli.distance = float(self.setlastpos(s[7]))
             obj.data = sli
 
-
         b.hitobjects.append(obj)
-
 
     def objects(self, b, line):
         if b.mode == MODE_STD:
@@ -496,8 +509,7 @@ class parser:
         else:
             raise NotImplementedError
 
-
-    def map(self, osu_file, bmap = None):
+    def map(self, osu_file, bmap=None):
         """
         reads a file object and parses it into a beatmap object
         which is then returned.
@@ -553,13 +565,11 @@ class parser:
                     findres = line.strip().find(OSU_MAGIC)
                     if findres > 0:
                         b.format_version = int(
-                            line[findres+len(OSU_MAGIC):]
+                            line[findres + len(OSU_MAGIC):]
                         )
 
             except (ValueError, SyntaxError) as e:
                 info("W: %s\n%s\n" % (e, self))
-
-
 
         if b.ar is None:
             b.ar = b.od
@@ -568,21 +578,21 @@ class parser:
         return b
 
 
-
 # -------------------------------------------------------------------------
 # mods utils
 
 MODS_NOMOD = 0
-MODS_NF = 1<<0
-MODS_EZ = 1<<1
-MODS_TD = MODS_TOUCH_DEVICE = 1<<2
-MODS_HD = 1<<3
-MODS_HR = 1<<4
-MODS_DT = 1<<6
-MODS_HT = 1<<8
-MODS_NC = 1<<9
-MODS_FL = 1<<10
-MODS_SO = 1<<12
+MODS_NF = 1 << 0
+MODS_EZ = 1 << 1
+MODS_TD = MODS_TOUCH_DEVICE = 1 << 2
+MODS_HD = 1 << 3
+MODS_HR = 1 << 4
+MODS_DT = 1 << 6
+MODS_HT = 1 << 8
+MODS_NC = 1 << 9
+MODS_FL = 1 << 10
+MODS_SO = 1 << 12
+
 
 def mods_str(mods):
     """
@@ -599,8 +609,10 @@ def mods_str(mods):
     if mods & MODS_HR != 0: res += "HR"
     if mods & MODS_EZ != 0: res += "EZ"
     if mods & MODS_TOUCH_DEVICE != 0: res += "TD"
-    if mods & MODS_NC != 0: res += "NC"
-    elif mods & MODS_DT != 0: res += "DT"
+    if mods & MODS_NC != 0:
+        res += "NC"
+    elif mods & MODS_DT != 0:
+        res += "DT"
     if mods & MODS_FL != 0: res += "FL"
     if mods & MODS_SO != 0: res += "SO"
     if mods & MODS_NF != 0: res += "NF"
@@ -617,27 +629,36 @@ def mods_from_str(string):
     res = 0
 
     while string != "":
-        if string.startswith("HD"): res |= MODS_HD
-        elif string.startswith("HT"): res |= MODS_HT
-        elif string.startswith("HR"): res |= MODS_HR
-        elif string.startswith("EZ"): res |= MODS_EZ
-        elif string.startswith("TD"): res |= MODS_TOUCH_DEVICE
-        elif string.startswith("NC"): res |= MODS_NC
-        elif string.startswith("DT"): res |= MODS_DT
-        elif string.startswith("FL"): res |= MODS_FL
-        elif string.startswith("SO"): res |= MODS_SO
-        elif string.startswith("NF"): res |= MODS_NF
+        if string.startswith("HD"):
+            res |= MODS_HD
+        elif string.startswith("HT"):
+            res |= MODS_HT
+        elif string.startswith("HR"):
+            res |= MODS_HR
+        elif string.startswith("EZ"):
+            res |= MODS_EZ
+        elif string.startswith("TD"):
+            res |= MODS_TOUCH_DEVICE
+        elif string.startswith("NC"):
+            res |= MODS_NC
+        elif string.startswith("DT"):
+            res |= MODS_DT
+        elif string.startswith("FL"):
+            res |= MODS_FL
+        elif string.startswith("SO"):
+            res |= MODS_SO
+        elif string.startswith("NF"):
+            res |= MODS_NF
         else:
             string = string[1:]
             continue
 
         string = string[2:]
 
-
     return res
 
 
-def mods_apply(mods, ar = None, od = None, cs = None, hp = None):
+def mods_apply(mods, ar=None, od=None, cs=None, hp=None):
     """
     calculates speed multiplier, ar, od, cs, hp with the given
     mods applied. returns (speed_mul, ar, od, cs, hp).
@@ -701,14 +722,12 @@ def mods_apply(mods, ar = None, od = None, cs = None, hp = None):
         else:
             ar = 5.0 + (AR5_MS - arms) / AR_MS_STEP2
 
-
     if od != None:
         od *= od_ar_hp_multiplier
         odms = OD0_MS - math.ceil(OD_MS_STEP * od)
         odms = min(OD0_MS, max(OD10_MS, odms))
         odms /= speed_mul
         od = (OD0_MS - odms) / OD_MS_STEP
-
 
     if cs != None:
         if mods & MODS_HR != 0:
@@ -718,7 +737,6 @@ def mods_apply(mods, ar = None, od = None, cs = None, hp = None):
             cs *= 0.5
 
         cs = min(10.0, cs)
-
 
     if hp != None:
         hp = min(10.0, hp * od_ar_hp_multiplier)
@@ -732,14 +750,14 @@ def mods_apply(mods, ar = None, od = None, cs = None, hp = None):
 DIFF_SPEED = 0
 DIFF_AIM = 1
 
-def d_spacing_weight(difftype, distance, delta_time, prev_distance,
-    prev_delta_time, angle):
 
+def d_spacing_weight(difftype, distance, delta_time, prev_distance,
+                     prev_delta_time, angle):
     # calculates spacing weight and returns (weight, is_single)
     # NOTE: is_single is only computed for DIFF_SPEED
 
-    MIN_SPEED_BONUS = 75.0 # ~200BPM 1/4 streams
-    MAX_SPEED_BONUS = 45.0 # ~330BPM 1/4 streams
+    MIN_SPEED_BONUS = 75.0  # ~200BPM 1/4 streams
+    MAX_SPEED_BONUS = 45.0  # ~330BPM 1/4 streams
     ANGLE_BONUS_SCALE = 90
     AIM_TIMING_THRESHOLD = 107
     SPEED_ANGLE_BONUS_BEGIN = 5 * math.pi / 6
@@ -761,13 +779,13 @@ def d_spacing_weight(difftype, distance, delta_time, prev_distance,
                 max(distance - ANGLE_BONUS_SCALE, 0.0)
             )
             result = (
-                1.5 * pow(max(0.0, angle_bonus), 0.99) /
-                max(AIM_TIMING_THRESHOLD, prev_strain_time)
+                    1.5 * pow(max(0.0, angle_bonus), 0.99) /
+                    max(AIM_TIMING_THRESHOLD, prev_strain_time)
             )
         weighted_distance = pow(distance, 0.99)
         res = max(result +
-            weighted_distance / max(AIM_TIMING_THRESHOLD, strain_time),
-            weighted_distance / strain_time)
+                  weighted_distance / max(AIM_TIMING_THRESHOLD, strain_time),
+                  weighted_distance / strain_time)
         return (res, False)
 
     elif difftype == DIFF_SPEED:
@@ -779,39 +797,39 @@ def d_spacing_weight(difftype, distance, delta_time, prev_distance,
             speed_bonus += pow((MIN_SPEED_BONUS - delta_time) / 40.0, 2)
         angle_bonus = 1.0
         if angle is not None and angle < SPEED_ANGLE_BONUS_BEGIN:
-             s = math.sin(1.5 * (SPEED_ANGLE_BONUS_BEGIN - angle))
-             angle_bonus += s * s / 3.57
-             if angle < math.pi / 2.0:
+            s = math.sin(1.5 * (SPEED_ANGLE_BONUS_BEGIN - angle))
+            angle_bonus += s * s / 3.57
+            if angle < math.pi / 2.0:
                 angle_bonus = 1.28
                 if distance < ANGLE_BONUS_SCALE and angle < math.pi / 4.0:
                     angle_bonus += (
-                        (1.0 - angle_bonus) *
-                        min((ANGLE_BONUS_SCALE - distance) / 10.0, 1.0)
+                            (1.0 - angle_bonus) *
+                            min((ANGLE_BONUS_SCALE - distance) / 10.0, 1.0)
                     )
                 elif distance < ANGLE_BONUS_SCALE:
                     angle_bonus += (
-                        (1.0 - angle_bonus) *
-                        min((ANGLE_BONUS_SCALE - distance) / 10.0, 1.0) *
-                        math.sin((math.pi / 2.0 - angle) * 4.0 / math.pi)
+                            (1.0 - angle_bonus) *
+                            min((ANGLE_BONUS_SCALE - distance) / 10.0, 1.0) *
+                            math.sin((math.pi / 2.0 - angle) * 4.0 / math.pi)
                     )
         res = (
-            (1 + (speed_bonus - 1) * 0.75) * angle_bonus *
-            (0.95 + speed_bonus * pow(distance / SINGLE_SPACING, 3.5))
-        ) / strain_time
+                      (1 + (speed_bonus - 1) * 0.75) * angle_bonus *
+                      (0.95 + speed_bonus * pow(distance / SINGLE_SPACING, 3.5))
+              ) / strain_time
         return (res, is_single)
-
 
     raise NotImplementedError
 
 
-DECAY_BASE = [ 0.3, 0.15 ] # strain decay per interval
+DECAY_BASE = [0.3, 0.15]  # strain decay per interval
+
 
 def d_strain(difftype, obj, prevobj, speed_mul):
     # calculates the difftype strain value for a hitobject. stores
     # the result in obj.strains[difftype]
     # this assumes that normpos is already computed
 
-    WEIGHT_SCALING = [ 1400.0, 26.25 ] # balances speed and aim
+    WEIGHT_SCALING = [1400.0, 26.25]  # balances speed and aim
 
     t = difftype
     value = 0.0
@@ -824,11 +842,10 @@ def d_strain(difftype, obj, prevobj, speed_mul):
         distance = (obj.normpos - prevobj.normpos).len()
         obj.d_distance = distance
         value, is_single = d_spacing_weight(t, distance, time_elapsed,
-            prevobj.d_distance, prevobj.delta_time, obj.angle)
+                                            prevobj.d_distance, prevobj.delta_time, obj.angle)
         value *= WEIGHT_SCALING[t]
         if t == DIFF_SPEED:
             obj.is_single = is_single
-
 
     obj.strains[t] = prevobj.strains[t] * decay + value
 
@@ -854,13 +871,11 @@ class diff_calc:
 
         self.reset()
 
-
     def reset(self):
         self.total = 0.0
         self.aim = self.aim_difficulty = self.aim_length_bonus = 0.0
         self.speed = self.speed_difficulty = self.speed_length_bonus = 0.0
         self.nsingles = self.nsingles_threshold = 0
-
 
     def __str__(self):
         return """%g stars (%g aim, %g speed)
@@ -869,7 +884,6 @@ class diff_calc:
             self.total, self.aim, self.speed, self.nsingles,
             self.nsingles_threshold
         )
-
 
     def calc_individual(self, difftype, bmap, speed_mul):
         # calculates total strain for difftype. this assumes the
@@ -889,7 +903,7 @@ class diff_calc:
         # first object doesn't generate a strain so we begin with
         # an incremented interval end
         interval_end = (
-          math.ceil(objs[0].time / strain_step) * strain_step
+                math.ceil(objs[0].time / strain_step) * strain_step
         )
         max_strain = 0.0
 
@@ -914,9 +928,7 @@ class diff_calc:
                 max_strain = prev.strains[t] * decay
                 interval_end += strain_step
 
-
             max_strain = max(max_strain, obj.strains[t])
-
 
         # don't forget to add the last strain
         self.strains.append(max_strain)
@@ -934,9 +946,7 @@ class diff_calc:
             difficulty += strain * weight
             weight *= DECAY_WEIGHT
 
-
-        return ( difficulty, total )
-
+        return (difficulty, total)
 
     def calc(self, bmap, mods=MODS_NOMOD, singletap_threshold=125):
         """
@@ -954,13 +964,13 @@ class diff_calc:
         # non-normalized diameter where the small circle size buff
         # starts
         CIRCLESIZE_BUFF_THRESHOLD = 30.0
-        STAR_SCALING_FACTOR = 0.0675 # global stars multiplier
+        STAR_SCALING_FACTOR = 0.0675  # global stars multiplier
 
         # 50% of the difference between aim and speed is added to
         # star rating to compensate aim only or speed only maps
         EXTREME_SCALING_FACTOR = 0.5
 
-        PLAYFIELD_WIDTH = 512.0 # in osu!pixels
+        PLAYFIELD_WIDTH = 512.0  # in osu!pixels
         playfield_center = v2f(
             PLAYFIELD_WIDTH / 2, PLAYFIELD_WIDTH / 2
         )
@@ -975,8 +985,8 @@ class diff_calc:
 
         # circle radius
         radius = (
-            (PLAYFIELD_WIDTH / 16.0) *
-            (1.0 - 0.7 * (cs - 5.0) / 5.0)
+                (PLAYFIELD_WIDTH / 16.0) *
+                (1.0 - 0.7 * (cs - 5.0) / 5.0)
         )
 
         # positions are normalized on circle radius so that we can
@@ -986,9 +996,8 @@ class diff_calc:
         # low cs buff (credits to osuElements)
         if radius < CIRCLESIZE_BUFF_THRESHOLD:
             scaling_factor *= (
-                1.0 + min(CIRCLESIZE_BUFF_THRESHOLD - radius, 5.0) / 50.0
+                    1.0 + min(CIRCLESIZE_BUFF_THRESHOLD - radius, 5.0) / 50.0
             )
-
 
         playfield_center *= scaling_factor
 
@@ -1016,7 +1025,7 @@ class diff_calc:
 
             prev2 = prev1
             prev1 = obj
-            i+=1
+            i += 1
 
         b = bmap
 
@@ -1031,12 +1040,12 @@ class diff_calc:
 
         def length_bonus(star, diff):
             return (
-              0.32 + 0.5 * (math.log10(diff + star) - math.log10(star))
+                    0.32 + 0.5 * (math.log10(diff + star) - math.log10(star))
             )
 
         self.aim_length_bonus = length_bonus(self.aim, self.aim_difficulty)
         self.speed_length_bonus = (
-          length_bonus(self.speed, self.speed_difficulty)
+            length_bonus(self.speed, self.speed_difficulty)
         )
         self.aim = math.sqrt(self.aim) * STAR_SCALING_FACTOR
         self.speed = math.sqrt(self.speed) * STAR_SCALING_FACTOR
@@ -1046,7 +1055,7 @@ class diff_calc:
         # total stars
         self.total = self.aim + self.speed
         self.total += (
-            abs(self.speed - self.aim) *
+                abs(self.speed - self.aim) *
                 EXTREME_SCALING_FACTOR
         )
 
@@ -1065,9 +1074,7 @@ class diff_calc:
             if interval >= singletap_threshold:
                 self.nsingles_threshold += 1
 
-
         return self
-
 
 
 # -------------------------------------------------------------------------
@@ -1109,8 +1116,8 @@ def acc_round(acc_percent, nobjects, misses):
         n100 = 0
         n50 = round(
             -6.0 * (
-                (acc_percent * 0.01 - 1.0) * nobjects
-                + misses
+                    (acc_percent * 0.01 - 1.0) * nobjects
+                    + misses
             ) * 0.5
         )
 
@@ -1128,15 +1135,15 @@ def acc_round(acc_percent, nobjects, misses):
 def pp_base(stars):
     # base pp value for stars, used internally by ppv2
     return (
-        pow(5.0 * max(1.0, stars / 0.0675) - 4.0, 3.0) / 100000.0
+            pow(5.0 * max(1.0, stars / 0.0675) - 4.0, 3.0) / 100000.0
     )
 
 
 def ppv2(
-    aim_stars=None, speed_stars=None, max_combo=None,
-    nsliders=None, ncircles=None, nobjects=None, base_ar=5.0,
-    base_od=5.0, mode=MODE_STD, mods=MODS_NOMOD, combo=None,
-    n300=None, n100=0, n50=0, nmiss=0, score_version=1, bmap=None
+        aim_stars=None, speed_stars=None, max_combo=None,
+        nsliders=None, ncircles=None, nobjects=None, base_ar=5.0,
+        base_od=5.0, mode=MODE_STD, mods=MODS_NOMOD, combo=None,
+        n300=None, n100=0, n50=0, nmiss=0, score_version=1, bmap=None
 ):
     """
     calculates ppv2
@@ -1155,7 +1162,6 @@ def ppv2(
             "ppv2 is only implemented for osu!std at the moment\n"
         )
         raise NotImplementedError
-
 
     if bmap != None:
         mode = bmap.mode
@@ -1184,7 +1190,6 @@ def ppv2(
 
         if nobjects == None:
             raise ValueError("missing nobjects or bmap")
-
 
     if max_combo <= 0:
         info("W: max_combo <= 0, changing to 1\n")
@@ -1242,7 +1247,6 @@ def ppv2(
 
     elif ar < 8.0:
         ar_bonus += 0.01 * (8.0 - ar)
-
 
     # aim pp ------------------------------------------------------
     aim = pp_base(aim_stars)
@@ -1306,10 +1310,10 @@ def ppv2(
         final_multiplier *= 0.95
 
     total = (
-        pow(
-            pow(aim, 1.1) + pow(speed, 1.1) + pow(acc, 1.1),
-            1.0 / 1.1
-        ) * final_multiplier
+            pow(
+                pow(aim, 1.1) + pow(speed, 1.1) + pow(acc, 1.1),
+                1.0 / 1.1
+            ) * final_multiplier
     )
 
     return (total, aim, speed, acc, accuracy * 100.0)
@@ -1338,7 +1342,6 @@ if __name__ == "__main__":
         elif arg.endswith("m"):
             nmiss = int(arg[:-1])
 
-
     try:
         p = parser()
         bmap = p.map(sys.stdin)
@@ -1346,16 +1349,16 @@ if __name__ == "__main__":
             combo = bmap.max_combo()
 
         print("%s - %s [%s] +%s" % (bmap.artist, bmap.title,
-            bmap.version, mods_str(mods)))
+                                    bmap.version, mods_str(mods)))
         print("OD%g AR%g CS%g HP%g" % (bmap.od, bmap.ar, bmap.cs,
-            bmap.hp))
+                                       bmap.hp))
         stars = diff_calc().calc(bmap, mods)
         print("max combo: %d\n" % (bmap.max_combo()))
         print(stars)
 
         # round acc percent to the closest 300/100/50 count
         n300, n100, n50 = acc_round(acc_percent,
-            len(bmap.hitobjects), nmiss)
+                                    len(bmap.hitobjects), nmiss)
 
         # ppv2 returns a tuple (pp, aim, speed, acc, percent)
         print("%g pp (%g aim, %g speed, %g acc) for %g%%" % (
@@ -1374,5 +1377,5 @@ if __name__ == "__main__":
     except Exception as e:
         if p.done:
             raise
-        else: # beatmap parsing error, print parser state
+        else:  # beatmap parsing error, print parser state
             info("%s\n%s\n" % (traceback.format_exc(), str(p)))
